@@ -1,8 +1,8 @@
 import time
 import asyncio
 
-from csgo import CSGO
-from football import Football
+from scrappers.csgo import CSGO
+from scrappers.football import Football
 import settings
 
 
