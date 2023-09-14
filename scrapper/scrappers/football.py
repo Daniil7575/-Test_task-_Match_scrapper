@@ -1,12 +1,13 @@
 import asyncio
 import re
 from datetime import datetime, timedelta
-import aiohttp
 
+import aiohttp
 from playwright.async_api import Browser, Page, async_playwright
 
 import settings
-from utils import GatheringTaskGroup, Scrapper, block_aggressively
+from scrappers.base_scrapper import Scrapper
+from utils import GatheringTaskGroup, block_aggressively
 
 
 class Football(Scrapper):

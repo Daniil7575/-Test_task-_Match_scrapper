@@ -1,0 +1,47 @@
+version: '2.3'
+
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    build:
+      context: .
+      dockerfile: Dockerfile.PostgreSQL
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB_NAME=text2sql
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./dbdump:/dbdump/
+  api:
+    container_name: api_service
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    command: bash -c "alembic upgrade head
+            && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+    links:
+      - postgres
+  scrapper:
+    container_name: scrapper
+    build: 
+      context: ./scrapper
+      dockerfile: Dockerfile
+    command: bash -c "python main.py"
+    ports:
+      - 8001:8001
+    depends_on:
+      - postgres
+      - api
+    links:
+      - api

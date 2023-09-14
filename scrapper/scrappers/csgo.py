@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from playwright.async_api import Browser, Page, async_playwright
 
 import settings
-from utils import GatheringTaskGroup, Scrapper, block_aggressively
+from scrappers.base_scrapper import Scrapper
+from utils import block_aggressively, GatheringTaskGroup
 
 
 class CSGO(Scrapper):
