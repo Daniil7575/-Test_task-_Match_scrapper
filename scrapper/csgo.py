@@ -1,7 +1,7 @@
 import asyncio
+import aiohttp
 import re
 from datetime import datetime, timedelta
-import aiohttp
 
 from playwright.async_api import Browser, Page, async_playwright
 
@@ -9,11 +9,11 @@ import settings
 from utils import GatheringTaskGroup, Scrapper, block_aggressively
 
 
-class Football(Scrapper):
-    def __init__(self, base_url: str, game_name: str = "Football") -> None:
+class CSGO(Scrapper):
+    def __init__(self, base_url: str, game_name: str = "CS:GO") -> None:
         super().__init__(base_url, game_name)
 
-    async def run(self) -> dict[str, dict[str, list[dict[str, str]]]]:
+    async def run(self):
         res = {self.game_name: []}
         urls = await self.get_url_dates()
         async with async_playwright() as pw:
@@ -22,7 +22,7 @@ class Football(Scrapper):
             async with GatheringTaskGroup() as tg:
                 for url in urls:
                     page = await browser.new_page(
-                        viewport={"width": 1000, "height": 1000}
+                        viewport={"width": 1280, "height": 1000}
                     )
                     tg.create_task(self._tournament_runner(page, url, browser))
         tour_res = {}
@@ -33,19 +33,6 @@ class Football(Scrapper):
             async with session.post(url, json={"data": res}) as resp:
                 print(await resp.text())
         return res
-
-    async def get_url_dates(self) -> list[str]:
-        urls = []
-        for i in range(0, 3):
-            date_from = datetime.now() + timedelta(days=i)
-            date_from = date_from.strftime("%Y/%m/%d")
-            url = (
-                self.base_url
-                + f"/en/schedule?dateFrom={date_from}+00%3A00"
-                + f"&dateTo={date_from}+23%3A59&page=1"
-            )
-            urls.append(url)
-        return urls
 
     async def _tournament_runner(
         self, page: Page, url: str, browser: Browser, page_number: int = 1
@@ -75,19 +62,21 @@ class Football(Scrapper):
         async with GatheringTaskGroup() as tg:
             for idx, link in enumerate(links):
                 if (
-                    await page.locator(".tooltip-text.caption-1")
+                    await page.locator(".tournament-title-label")
                     .nth(idx)
                     .inner_html()
-                    == "Tournament Finished"
+                    == "Finished"
                 ):
                     continue
+
+                print(f"start match {idx}")
                 tour_name = (
-                    await page.locator(".tournament-title-label")
+                    await page.locator(".tournaments-cell-game-type")
                     .nth(idx)
                     .inner_text()
                 )
                 tour_date = (
-                    await page.locator(".location-title-date")
+                    await page.locator(".tournaments-cell-date")
                     .nth(idx)
                     .inner_text()
                 )
@@ -100,14 +89,24 @@ class Football(Scrapper):
         res = tg.results()
         res_dict = {}
         [res_dict.update(elem) for elem in res]
+        # Check if there any pagination
+        if not (
+            await page.locator(".tournaments-table-pagination")
+            .locator(".align-mob-center")
+            .count()
+        ):
+            return res_dict
+
         next_page_class = (
             await page.locator(".tournaments-table-pagination")
             .locator(".align-mob-center")
             .nth(1)
             .get_attribute("class")
         )
+        # Check if can go to next page
         if "disable" in next_page_class:
             return res_dict
+
         await page.locator(".tournaments-table-pagination").locator(
             ".align-mob-center"
         ).nth(1).click()
@@ -133,25 +132,24 @@ class Football(Scrapper):
         if not cnt:
             print(f"Cant load resource on {url}")
             return []
-        print(f"Start data extraction on {url}")
+
         result = {tour_name: []}
+        print(f"Start data extraction on {url}")
 
         for match_number in range(cnt):
             row = page.locator(".tournament-matches-row").nth(match_number)
             if (
-                await row.locator(".tournament-matches-cell-status")
-                .locator(".subcaption-1")
-                .inner_text()
+                await row.locator(".tournament-title-label").inner_text()
             ) != "Planned":
                 continue
 
             date_ = await row.locator(".tournament-matches-date").inner_text()
             team1, team2 = await row.locator(
-                ".text-link.caption-2"
+                ".participant-photo-logo-team"
             ).all_inner_texts()
             result[tour_name].append(
                 {
-                    "date": tour_date.split()[0] + " " + date_,
+                    "date": date_,
                     "team_1": team1,
                     "team_2": team2,
                 }
@@ -173,3 +171,17 @@ class Football(Scrapper):
                 return cnt
             attempts_count -= 1
         print(f"Element {name} not found.")
+
+    async def get_url_dates(self) -> list[str]:
+        urls = []
+        for i in range(0, 3):
+            date_from = datetime.now() + timedelta(days=i)
+            date_from = date_from.strftime("%Y/%m/%d")
+            url = (
+                self.base_url
+                + f"/en/schedule?dateFrom={date_from}+00%3A00"
+                + f"&dateTo={date_from}+23%3A59&page=1"
+            )
+            urls.append(url)
+        print(urls)
+        return urls
