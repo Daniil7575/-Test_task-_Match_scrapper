@@ -25,7 +25,7 @@
         ```
         python -m venv venv
         ```
-    2. Then activate it.
+    2. Activate it.
     3. Install all packages to do this, you need to:
         ```
         pip install -r app/requirements.txt
