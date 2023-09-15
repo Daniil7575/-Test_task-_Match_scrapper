@@ -38,6 +38,8 @@ services:
       context: ./scrapper
       dockerfile: Dockerfile
     command: bash -c "python main.py"
+    environment:
+      - IS_DOCKER=True
     ports:
       - 8001:8001
     depends_on:

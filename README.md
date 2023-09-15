@@ -8,7 +8,7 @@
 2. Go to the root folder of *project* (`-Test_task-_Match_scrapper`).
 3. Add to `app/` folder a `.env` file and fill it like this:
     ```
-    DB_HOST = localhost
+    DB_HOST = postgres
     DB_PORT = 5432
     DB_USER = postgres
     DB_PASS = 123
