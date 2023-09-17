@@ -19,7 +19,6 @@
     sudo docker compose build
     sudo docker compose up
     ```
-
 5. If not then
     1. Make virtual environment with:
         ```
@@ -43,9 +42,12 @@
         uvicorn src.main:app --host 0.0.0.0 --port 8000
         cd ..
         ```
+    6. Install playwright chromium browser (if non exists):
+       ```
+       playwright install chromium
+       ```
     6. Launch scrapper:
-        ```
-        cd scrapper
-        python main.py
-        ```
-
+       ```
+       cd scrapper
+       python main.py
+       ```
