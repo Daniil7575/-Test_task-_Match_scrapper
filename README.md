@@ -15,10 +15,12 @@
     DB_NAME = scrap
     ```
 4. If you want to use docker then you will need to build and up containers with the following commands:
-    ```
-    sudo docker compose build
-    sudo docker compose up
-    ```
+    1. Rename main project foler (`-Test_task-_Match_scrapper`) to something like `Match_scrapper`.
+    2. Execute below commands
+        ```
+        sudo docker compose build
+        sudo docker compose up
+        ```
 5. If not then
     1. Make virtual environment with:
         ```
@@ -46,7 +48,7 @@
        ```
        playwright install chromium
        ```
-    6. Launch scrapper:
+    7. Launch scrapper:
        ```
        cd scrapper
        python main.py
